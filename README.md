@@ -1,2 +1,2 @@
-# monnu
-A monitor for NPDS applications
+# Monnu
+A monitor for NPDS's applications
