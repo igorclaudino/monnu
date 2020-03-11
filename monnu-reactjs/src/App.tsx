@@ -1,19 +1,16 @@
-import React from 'react';
-import GlobalStyle from './styles/global';
-import { ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import React from "react";
+import { ThemeProvider } from "@material-ui/core";
 
-import Login from './pages/Login';
+import theme from "./styles/themes/monnu-theme";
+
+import Routes from "./routes";
 
 function App() {
   return (
-    <div className="App">
-      <ToastContainer />
-      <GlobalStyle />
-      <Login />
-    </div>
+    <ThemeProvider theme={theme}>
+      <Routes />
+    </ThemeProvider>
   );
 }
-
 
 export default App;
