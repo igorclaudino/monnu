@@ -1,49 +1,22 @@
-import React, { useState, useRef, FormEvent } from "react";
-import Button from "@material-ui/core/Button";
-import CssBaseline from "@material-ui/core/CssBaseline";
-import TextField from "@material-ui/core/TextField";
-import Link from "@material-ui/core/Link";
-import Box from "@material-ui/core/Box";
-import Typography from "@material-ui/core/Typography";
-import { makeStyles } from "@material-ui/core/styles";
-import Container from "@material-ui/core/Container";
-
+import React, { useState, useRef, FormEvent, useEffect } from "react";
 import { useHistory } from "react-router-dom";
-
-import api from "../../services/api";
-import { Snackbar, CircularProgress, Paper } from "@material-ui/core";
+import Copyright from "./Copyright";
+import {
+  Snackbar,
+  CircularProgress,
+  Paper,
+  Button,
+  CssBaseline,
+  TextField,
+  Box,
+  Typography,
+  Container
+} from "@material-ui/core";
 import Alert, { Color } from "@material-ui/lab/Alert";
 
-function Copyright() {
-  return (
-    <Typography variant="body2" color="textSecondary" align="center">
-      {"Copyright © "}
-      <Link color="inherit" href="https://npds.crateus.ufc.br/">
-        Núcleo de Prática de Desenvolvimento de Software
-      </Link>{" "}
-      {new Date().getFullYear()}
-      {"."}
-    </Typography>
-  );
-}
-
-const useStyles = makeStyles(theme => ({
-  paper: {
-    marginTop: theme.spacing(8),
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    padding: theme.spacing(2)
-  },
-
-  form: {
-    width: "100%", // Fix IE 11 issue.
-    marginTop: theme.spacing(1)
-  },
-  submit: {
-    margin: theme.spacing(3, 0, 0)
-  }
-}));
+import usePersistedState from "../../utils/usePersistedState";
+import useStyles from "./styles";
+import api from "../../services/api";
 
 interface SnackbarController {
   open: boolean;
@@ -51,9 +24,15 @@ interface SnackbarController {
   message: String;
 }
 
+interface LoggedUser {
+  user?: any;
+  token?: string;
+}
+
 const Login: React.FC = () => {
   const classes = useStyles();
   const history = useHistory();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -62,6 +41,14 @@ const Login: React.FC = () => {
     type: "info",
     message: ""
   });
+
+  useEffect(() => {
+    async function getLoggedUser() {
+      const fromStorage = await localStorage.getItem("@monnu/loggedUser");
+      if (fromStorage) history.push("/home");
+    }
+    getLoggedUser();
+  }, [history]);
 
   const handleClose = (event?: React.SyntheticEvent, reason?: string) => {
     if (reason === "clickaway") {
@@ -83,13 +70,10 @@ const Login: React.FC = () => {
     setLoading(true);
     try {
       const response = await api.post("/authenticate", { email, password });
-      // setSnackController({
-      //   message: "Opa",
-      //   type: "success",
-      //   open: true
-      // });
-      // setLoading(false);
-      // console.log(response.data);
+      await localStorage.setItem(
+        "@monnu/loggedUser",
+        JSON.stringify(response.data)
+      );
       history.push("/home");
     } catch (err) {
       console.log(err);

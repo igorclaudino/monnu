@@ -9,7 +9,7 @@ let theme: Theme = createMuiTheme({
         secondary: {
             main: '#DBCBD8'
         },
-
+        
     },
 });
 
