@@ -1,19 +1,28 @@
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import User from "../models/User";
+import Validator from "../helpers/Validator";
+
 
 class AuthController {
     async register(req, res) {
+
         const {
             name,
             email,
             password,
         } = req.body;
         const data = {};
-        if (!name || !email || !password)
-            return res.status(400).json({
-                error: "Name, email and password are required."
-            });
+
+
+        const validator = new Validator({
+            "name.required": name,
+            "email.required": email,
+            "password.required": password,
+        });
+
+        if (validator.hasError()) return res.status(400).json(validator.errors);
+
 
         data.name = name;
         data.email = email;
@@ -44,23 +53,39 @@ class AuthController {
     }
 
     async login(req, res) {
-        const { email, password } = req.body;
 
-        const user = await User.findOne({ email }).select("+password");
+        try {
+            const { email, password } = req.body;
 
-        if (!user) return res.status(401).json({ error: "User not found" });
+            const validator = new Validator({
+                "email.required": email,
+                "password.required": password,
+            });
 
-        if (!(await bcrypt.compare(password, user.password)))
-            return res.status(401).json({ error: "Invalid password" });
+            if (validator.hasError()) return res.status(400).json(validator.errors);
 
-        user.password = undefined;
+            const user = await User.findOne({ email }).select("+password");
 
-        return res.json({
-            user,
-            token: jwt.sign({ id: user._id }, process.env.APP_SECRET, {
-                expiresIn: 86400
-            })
-        });
+            if (!user) return res.status(401).json({ error: "User not found" });
+
+            if (!(await bcrypt.compare(password, user.password)))
+                return res.status(401).json({ error: "Invalid password" });
+
+            user.password = undefined;
+
+            return res.json({
+                user,
+                token: jwt.sign({ id: user._id }, process.env.APP_SECRET, {
+                    expiresIn: 86400
+                })
+            });
+
+        } catch (error) {
+            return res.status(500).json({error: error});
+        }
+
+
+
     }
 }
 

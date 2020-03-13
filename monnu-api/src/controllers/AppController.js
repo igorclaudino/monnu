@@ -1,19 +1,28 @@
 import jwt from "jsonwebtoken";
 import App from "../models/App";
+import Validator from "../helpers/Validatorr";
 
 class AppController {
     async store(req, res) {
-        const {
-            name,
-            url,
-            port,
-        } = req.body;
-        if (!name || !url || !port)
-            return res.status(400).json({
-                error: "Name, url and port are required."
-            });
 
         try {
+            const {
+                name,
+                url,
+                port,
+            } = req.body;
+
+
+            const validator = new Validator({
+                "name.required": name,
+                "url.required": url,
+                "port.required": port,
+            });
+
+            if (validator.hasError()) return res.status(400).json(validator.errors);
+
+
+
 
             const app = await App.create({ name, url, port });
 
@@ -28,8 +37,13 @@ class AppController {
     }
 
     async index(req, res) {
-        const apps = await App.find();
-        return res.json(apps);
+        try {
+            const apps = await App.find();
+            return res.json(apps);
+        } catch (error) {
+            return res.status(500).json({ error: error });
+        }
+
     }
 }
 
